@@ -43,6 +43,8 @@ img { display: block; max-width: 100%; }
 .main-nav a, .cart-link { font-size: 11px; white-space: nowrap; color: #4e5751; transition: color .2s; }
 .main-nav a:hover, .main-nav a.active { color: #b86549; }
 .cart-link { display: inline-flex; align-items: center; gap: 7px; position: relative; }
+.admin-login-link { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: #68766b; font-size: 10px; white-space: nowrap; }
+.admin-login-link:hover { color: #b86549; }
 .cart-count { min-width: 17px; height: 17px; display: grid; place-items: center; padding: 0 4px; position: absolute; top: -10px; right: -11px; border-radius: 50%; background: var(--clay); color: white; font-size: 9px; }
 .mobile-menu-button { display: none !important; }
 .icon-button { border: 0; background: transparent; padding: 7px; }
@@ -623,6 +625,9 @@ img { display: block; max-width: 100%; }
   .header-actions { flex: 0 0 auto; }
   .header-actions:not(.is-open) .cart-link { width: 32px; height: 34px; justify-content: center; gap: 0; }
   .header-actions:not(.is-open) .cart-link > span:not(.cart-count) { display: none; }
+  .header-actions:not(.is-open) .admin-login-link { width: 32px; height: 34px; }
+  .header-actions:not(.is-open) .admin-login-link > span { display: none; }
+  .header-actions.is-open .admin-login-link { margin: 12px 0 0 15px; }
   .header-actions.is-open { top: 66px; }
   .page-container { width: calc(100% - 32px); }
   .hero-banner { min-height: 560px; display: flex; flex-direction: column; }

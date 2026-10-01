@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ArrowRight, Check, Heart, Menu, Search, ShoppingBag, Shirt, X, Star } from "lucide-react";
+import { ArrowRight, Check, Heart, Menu, Search, ShoppingBag, Shirt, ShieldCheck, X, Star } from "lucide-react";
 import { money } from "../api";
 import { useCart } from "../cart";
 import type { Product, StoreSettings } from "../types";
@@ -35,6 +35,7 @@ export function Header({ shopName = "SABA READYMADE", ownerName = "Mr. MD Jawed 
           <NavLink to="/">Home</NavLink><NavLink to="/shop">Shop</NavLink><a href="/#categories" onClick={() => setMenuOpen(false)}>Categories</a><a href="/#new-arrivals" onClick={() => setMenuOpen(false)}>New in</a><a href="/#offers" onClick={() => setMenuOpen(false)}>Offers</a><a href="/#contact" onClick={() => setMenuOpen(false)}>Contact</a>
         </nav>
         <Link to="/cart" className="cart-link"><ShoppingBag size={19} /><span>Bag</span>{count > 0 && <span className="cart-count">{count}</span>}</Link>
+        <Link to="/admin" className="admin-login-link" aria-label="Admin login" title="Admin login"><ShieldCheck size={18} /><span>Admin</span></Link>
       </div>
     </header>
   </>;
