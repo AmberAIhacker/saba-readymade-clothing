@@ -23,6 +23,7 @@ const productFields = z.object({
   colors: z.array(z.string().trim().min(1).max(30)).max(16).default([]),
   keywords: z.array(z.string().trim().min(1).max(40)).max(20).default([]),
   stock: z.coerce.number().int().min(0).max(100000),
+  visible: z.boolean().default(true),
   rating: z.coerce.number().min(0).max(5).default(4.5),
   reviewCount: z.coerce.number().int().min(0).default(0),
   featured: z.boolean().default(false),
@@ -54,6 +55,7 @@ api.get("/products", asyncRoute(async (req, res) => {
   const sort = String(req.query.sort ?? "newest");
   const where = {
     category: { is: { enabled: true, ...(category && category !== "all" ? { slug: category } : {}) } },
+    visible: true,
     ...(req.query.featured === "true" ? { featured: true } : {}),
     ...(req.query.newArrival === "true" ? { newArrival: true } : {}),
     ...(req.query.offer === "true" ? { offer: true } : {}),
@@ -82,7 +84,7 @@ api.get("/products", asyncRoute(async (req, res) => {
 api.get("/products/:id", asyncRoute(async (req, res) => {
   const id = String(req.params.id);
   const product = await db.product.findFirst({
-    where: { OR: [{ id }, { slug: id }], category: { is: { enabled: true } } },
+    where: { OR: [{ id }, { slug: id }], visible: true, category: { is: { enabled: true } } },
     include: { category: true }
   });
   if (!product) throw new HttpError(404, "We couldn't find that product.");
@@ -123,6 +125,7 @@ api.post("/orders", asyncRoute(async (req, res) => {
     for (const item of input.items) {
       const product = await tx.product.findUnique({ where: { id: item.productId } });
       if (!product) throw new HttpError(404, "A product in your cart is no longer available.");
+      if (!product.visible) throw new HttpError(409, `${product.name} is not currently available.`);
       if (product.stock < item.quantity) throw new HttpError(409, `${product.name} has only ${product.stock} left in stock.`);
       if (!JSON.parse(product.sizes).includes(item.size) || !JSON.parse(product.colors).includes(item.color)) {
         throw new HttpError(400, `Please choose an available size and color for ${product.name}.`);
@@ -212,9 +215,9 @@ api.get("/admin/me", requireAdmin, asyncRoute(async (req, res) => {
 api.use("/admin", requireAdmin);
 
 api.get("/admin/dashboard", asyncRoute(async (_req, res) => {
-  const [totalProducts, totalOrders, pendingOrders, deliveredOrders, cancelledOrders, lowStock, outOfStock, revenue, recentOrders] = await Promise.all([
+  const [totalProducts, totalOrders, pendingOrders, confirmedOrders, deliveredOrders, cancelledOrders, lowStock, outOfStock, revenue, recentOrders] = await Promise.all([
     db.product.count(), db.order.count(), db.order.count({ where: { status: "Pending" } }),
-    db.order.count({ where: { status: "Delivered" } }), db.order.count({ where: { status: "Cancelled" } }),
+    db.order.count({ where: { status: "Confirmed" } }), db.order.count({ where: { status: "Delivered" } }), db.order.count({ where: { status: "Cancelled" } }),
     db.product.count({ where: { stock: { gt: 0, lte: 5 } } }), db.product.count({ where: { stock: 0 } }),
     db.order.aggregate({ where: { status: { not: "Cancelled" } }, _sum: { totalAmount: true } }),
     db.order.findMany({ orderBy: { createdAt: "desc" }, take: 7, include: { items: true } })
@@ -223,7 +226,7 @@ api.get("/admin/dashboard", asyncRoute(async (_req, res) => {
     where: { createdAt: { gte: new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1) } },
     select: { createdAt: true, totalAmount: true, status: true }
   });
-  res.json({ totalProducts, totalOrders, pendingOrders, deliveredOrders, cancelledOrders, lowStock, outOfStock, totalSales: revenue._sum.totalAmount ?? 0, recentOrders, ordersByMonth });
+  res.json({ totalProducts, totalOrders, pendingOrders, confirmedOrders, deliveredOrders, cancelledOrders, lowStock, outOfStock, totalSales: revenue._sum.totalAmount ?? 0, recentOrders, ordersByMonth });
 }));
 
 api.get("/admin/products", asyncRoute(async (_req, res) => {

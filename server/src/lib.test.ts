@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { jsonArray, publicProduct, slugify } from "./lib.js";
+import { jsonArray, ORDER_STATUSES, publicProduct, slugify } from "./lib.js";
 
 describe("catalog serialization helpers", () => {
   it("creates readable URL slugs", () => {
@@ -22,5 +22,11 @@ describe("catalog serialization helpers", () => {
     assert.deepEqual(product.colors, ["Navy"]);
     assert.equal(product.category && typeof product.category, "object");
     assert.equal("sizes" in product && typeof product.sizes, "object");
+  });
+
+  it("includes every admin-managed delivery status", () => {
+    assert.deepEqual(ORDER_STATUSES, [
+      "Pending", "Confirmed", "Processing", "Shipped", "Out for Delivery", "Delivered", "Cancelled"
+    ]);
   });
 });

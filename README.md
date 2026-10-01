@@ -63,6 +63,8 @@ No admin account or shared password is shipped in the seed data. Before creating
 
 Open <http://localhost:5173/admin> to sign in to the separate store studio.
 
+The protected admin studio includes sales and order summaries, product search/category/stock filters, price and inventory editing, multi-image URL fields, storefront visibility controls, category management, homepage settings, and order status updates. Orders can be tracked through Pending, Confirmed, Processing, Shipped, Out for Delivery, Delivered, or Cancelled. Cancelling an order requires confirmation and restores its reserved stock.
+
 ## Publish on Render
 
 ### Free hosting with Render and Neon

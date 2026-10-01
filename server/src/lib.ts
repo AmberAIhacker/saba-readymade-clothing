@@ -28,4 +28,4 @@ export function publicProduct<T extends {
   };
 }
 
-export const ORDER_STATUSES = ["Pending", "Confirmed", "Processing", "Shipped", "Delivered", "Cancelled"] as const;
+export const ORDER_STATUSES = ["Pending", "Confirmed", "Processing", "Shipped", "Out for Delivery", "Delivered", "Cancelled"] as const;

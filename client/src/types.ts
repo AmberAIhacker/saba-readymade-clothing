@@ -24,6 +24,7 @@ export interface Product {
   colors: string[];
   keywords: string[];
   stock: number;
+  visible: boolean;
   rating: number;
   reviewCount: number;
   featured: boolean;

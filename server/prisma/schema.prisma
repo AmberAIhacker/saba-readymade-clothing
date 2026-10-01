@@ -42,6 +42,7 @@ model Product {
   colors           String      @default("[]")
   keywords         String      @default("[]")
   stock             Int         @default(0)
+  visible           Boolean     @default(true)
   rating           Float       @default(4.5)
   reviewCount      Int         @default(0)
   featured         Boolean     @default(false)

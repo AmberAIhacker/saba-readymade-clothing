@@ -504,6 +504,7 @@ img { display: block; max-width: 100%; }
 .order-status-tag.status-confirmed, .order-status-select.status-confirmed { background-color: #edf1fa; color: #5b70a2; }
 .order-status-tag.status-processing, .order-status-select.status-processing { background-color: #f2effa; color: #76669c; }
 .order-status-tag.status-shipped, .order-status-select.status-shipped { background-color: #eaf3f6; color: #4f8093; }
+.order-status-tag.status-out-for-delivery, .order-status-select.status-out-for-delivery { background-color: #fff0e5; color: #a96535; }
 .order-status-tag.status-delivered, .order-status-select.status-delivered { background-color: #edf5ee; color: #50785a; }
 .order-status-tag.status-cancelled, .order-status-select.status-cancelled { background-color: #fbebe8; color: #aa5547; }
 .order-status-select { border: 0; border-radius: 3px; padding: 6px; font-size: 8px; cursor: pointer; }
