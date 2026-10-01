@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Boxes, Check, ChevronRight, CircleDollarSign, Sparkles,
@@ -334,11 +334,17 @@ export function AdminApp() {
     "/admin/access": ["Admin access", "Invite trusted people without opening admin registration to the public."],
     "/admin/settings": ["Store & homepage", "Keep your shop details, announcements and first impression feeling like you."]
   }[routeLocation.pathname] ?? ["Store studio", "Everything you need to take care of your shop."]), [routeLocation.pathname]);
-  function verify() {
+  const verify = useCallback(() => {
     setChecking(true);
     request<{ email: string }>("/admin/me").then((admin) => setEmail(admin.email)).catch(() => setEmail("")).finally(() => setChecking(false));
-  }
-  useEffect(verify, []);
+  }, []);
+  useEffect(() => {
+    if (routeLocation.pathname === "/admin/signup") {
+      setChecking(false);
+      return;
+    }
+    verify();
+  }, [routeLocation.pathname, verify]);
   async function logout() {
     await request("/admin/logout", { method: "POST" }).catch(() => undefined);
     setEmail("");
