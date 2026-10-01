@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft, ArrowRight, ArrowUpRight, Boxes, Check, ChevronRight, CircleDollarSign, Sparkles,
-  ClipboardList, LayoutDashboard, LogOut, Menu, Package, Plus, Search, Settings, ShieldCheck, Tag,
-  Trash2, Truck, Users, X
+  ClipboardCopy, ClipboardList, LayoutDashboard, LogOut, Menu, Package, Plus, Search, Settings,
+  ShieldCheck, Tag, Trash2, Truck, UserPlus, Users, X
 } from "lucide-react";
 import { money, request } from "../api";
 import type { Category, Order, Product, StoreSettings } from "../types";
@@ -21,6 +21,7 @@ const navigation = [
   { label: "Products", path: "/admin/products", icon: Package },
   { label: "Categories", path: "/admin/categories", icon: Tag },
   { label: "Orders", path: "/admin/orders", icon: ClipboardList },
+  { label: "Admin access", path: "/admin/access", icon: UserPlus },
   { label: "Store & homepage", path: "/admin/settings", icon: Settings }
 ];
 const statuses = ["Pending", "Confirmed", "Processing", "Shipped", "Out for Delivery", "Delivered", "Cancelled"];
@@ -37,7 +38,51 @@ function AdminLogin({ onLogin }: { onLogin: () => void }) {
     } catch (err) { setError((err as Error).message); }
     finally { setBusy(false); }
   }
-  return <div className="admin-login-screen"><Link to="/" className="admin-back-link"><ArrowLeft size={15} /> Back to SABA READYMADE</Link><form className="admin-login-card" onSubmit={submit}><div className="admin-login-icon"><ShieldCheck size={24} /></div><span className="admin-kicker">THE BACK ROOM</span><h1>Welcome back.</h1><p>Sign in to take care of the shop.</p><label>Email address<input name="email" type="email" required autoComplete="username" placeholder="admin@yourshop.com" /></label><label>Password<input name="password" type="password" required autoComplete="current-password" placeholder="Your secure password" /></label>{error && <div className="form-error">{error}</div>}<button className="admin-primary-button" disabled={busy}>{busy ? "Checking..." : "Sign in securely"} <ChevronRight size={17} /></button><small>This is a private area for store administrators.</small></form><div className="admin-login-footer">SABA READYMADE · LAHERIYASARAI</div></div>;
+  return <div className="admin-login-screen"><Link to="/" className="admin-back-link"><ArrowLeft size={15} /> Back to SABA READYMADE</Link><form className="admin-login-card" onSubmit={submit}><div className="admin-login-icon"><ShieldCheck size={24} /></div><span className="admin-kicker">THE BACK ROOM</span><h1>Welcome back.</h1><p>Sign in to take care of the shop.</p><label>Email address<input name="email" type="email" required autoComplete="username" placeholder="admin@yourshop.com" /></label><label>Password<input name="password" type="password" required autoComplete="current-password" placeholder="Your secure password" /></label>{error && <div className="form-error">{error}</div>}<button className="admin-primary-button" disabled={busy}>{busy ? "Checking..." : "Sign in securely"} <ChevronRight size={17} /></button><small>This is a private area for store administrators.</small><Link className="admin-invite-signup-link" to="/admin/signup">Have an invitation? Create an admin account</Link></form><div className="admin-login-footer">SABA READYMADE · LAHERIYASARAI</div></div>;
+}
+
+function AdminSignup({ onCreated }: { onCreated: (email: string) => void }) {
+  const [params] = useSearchParams();
+  const token = params.get("token") ?? "";
+  const [invite, setInvite] = useState<{ email: string; expiresAt: string } | null>(null);
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (!token) return;
+    request<{ email: string; expiresAt: string }>(`/admin/invites/validate/${encodeURIComponent(token)}`)
+      .then(setInvite)
+      .catch((err: Error) => setError(err.message));
+  }, [token]);
+
+  async function submit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setError("");
+    const password = new FormData(event.currentTarget).get("password");
+    try {
+      const result = await request<{ email: string }>("/admin/signup", {
+        method: "POST",
+        body: JSON.stringify({ token, password })
+      });
+      onCreated(result.email);
+    } catch (err) {
+      setError((err as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return <div className="admin-login-screen"><Link to="/" className="admin-back-link"><ArrowLeft size={15} /> Back to SABA READYMADE</Link>
+    <form className="admin-login-card" onSubmit={submit}>
+      <div className="admin-login-icon"><UserPlus size={24} /></div><span className="admin-kicker">PRIVATE ADMIN INVITATION</span><h1>Create your admin account.</h1>
+      {!token ? <p>Admin accounts are invite-only. Open the private invitation link sent by your shop administrator.</p> :
+        error && !invite ? <div className="form-error">{error}</div> :
+          !invite ? <div className="admin-loading"><span /> Checking your invitation...</div> :
+            <><p>Invitation for <strong>{invite.email}</strong></p><label>Create password<input name="password" type="password" required minLength={12} maxLength={200} autoComplete="new-password" placeholder="At least 12 characters" /></label>{error && <div className="form-error">{error}</div>}<button className="admin-primary-button" disabled={busy}>{busy ? "Creating account..." : "Create admin account"} <ChevronRight size={17} /></button><small>This invitation can only be used once and expires after 24 hours.</small></>}
+      <Link className="admin-invite-signup-link" to="/admin">Already have an account? Sign in</Link>
+    </form><div className="admin-login-footer">SABA READYMADE · PRIVATE ADMIN AREA</div>
+  </div>;
 }
 
 function AdminShell({ email, children, title, subtitle, active, onLogout }: {
@@ -191,6 +236,66 @@ function OrdersManager() {
   return <section className="admin-panel admin-table-panel"><div className="admin-toolbar"><label className="admin-search"><Search size={16} /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Order ID, customer or mobile" /></label><select className="admin-filter-select" value={status} onChange={(event) => setStatus(event.target.value)}><option value="">All order statuses</option>{statuses.map((value) => <option key={value}>{value}</option>)}</select><span>{orders.length} orders</span></div>{error && <div className="admin-inline-error">{error}<button onClick={() => setError("")}><X size={14} /></button></div>}{orders.length ? <OrderTable orders={orders} onStatus={changeStatus} /> : <div className="admin-empty"><ClipboardList size={23} /><span>{search || status ? "No orders match those filters." : "Your first order will be right here."}</span></div>}</section>;
 }
 
+type AdminInvite = { id: string; email: string; expiresAt: string; createdAt: string };
+
+function AdminAccessManager() {
+  const [email, setEmail] = useState("");
+  const [invites, setInvites] = useState<AdminInvite[]>([]);
+  const [inviteUrl, setInviteUrl] = useState("");
+  const [error, setError] = useState("");
+  const [notice, setNotice] = useState("");
+  const [busy, setBusy] = useState(false);
+  const load = () => request<AdminInvite[]>("/admin/invites").then(setInvites).catch((err: Error) => setError(err.message));
+  useEffect(() => { load(); }, []);
+
+  async function create(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true); setError(""); setNotice(""); setInviteUrl("");
+    try {
+      const invite = await request<AdminInvite & { token: string }>("/admin/invites", {
+        method: "POST", body: JSON.stringify({ email })
+      });
+      setInviteUrl(`${window.location.origin}/admin/signup?token=${encodeURIComponent(invite.token)}`);
+      setEmail("");
+      setNotice(`Invitation created for ${invite.email}. Copy and share the private link; it expires in 24 hours.`);
+      load();
+    } catch (err) { setError((err as Error).message); }
+    finally { setBusy(false); }
+  }
+
+  async function copyLink() {
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setNotice("Invitation link copied.");
+    } catch {
+      setError("Couldn't copy automatically. Select and copy the invitation link below.");
+    }
+  }
+
+  async function revoke(invite: AdminInvite) {
+    if (!window.confirm(`Revoke the invitation for ${invite.email}?`)) return;
+    try {
+      await request(`/admin/invites/${invite.id}`, { method: "DELETE" });
+      setNotice(`Invitation for ${invite.email} revoked.`);
+      load();
+    } catch (err) { setError((err as Error).message); }
+  }
+
+  return <div className="admin-access-layout">
+    <section className="admin-panel admin-invite-panel">
+      <div className="admin-panel-heading"><div><span className="admin-kicker">PRIVATE ACCESS ONLY</span><h2>Invite another admin</h2></div><ShieldCheck size={19} /></div>
+      <p>Only a signed-in administrator can create invitations. Each link is single-use and expires in 24 hours.</p>
+      <form onSubmit={create}><label>Administrator email<input type="email" required maxLength={254} value={email} onChange={(event) => setEmail(event.target.value)} placeholder="colleague@example.com" /></label><button className="admin-primary-button" disabled={busy}><UserPlus size={16} /> {busy ? "Creating invitation..." : "Create invitation"}</button></form>
+      {error && <div className="admin-inline-error">{error}<button onClick={() => setError("")}><X size={14} /></button></div>}
+      {notice && <div className="admin-inline-success">{notice}<button onClick={() => setNotice("")}><X size={14} /></button></div>}
+      {inviteUrl && <div className="admin-invite-result"><label>Private invitation link<input readOnly value={inviteUrl} onFocus={(event) => event.currentTarget.select()} /></label><button className="admin-secondary-button" onClick={copyLink}><ClipboardCopy size={15} /> Copy invite link</button></div>}
+    </section>
+    <section className="admin-panel admin-invites-panel"><div className="admin-panel-heading"><div><span className="admin-kicker">LINKS NOT YET USED</span><h2>Active invitations</h2></div><span className="admin-panel-chip">{invites.length} active</span></div>
+      {invites.length ? invites.map((invite) => <div className="admin-invite-row" key={invite.id}><div><strong>{invite.email}</strong><span>Expires {new Date(invite.expiresAt).toLocaleString("en-IN")}</span></div><button className="admin-row-edit-category" onClick={() => revoke(invite)}>Revoke</button></div>) : <div className="admin-empty"><Users size={22} /><span>No active invitations.</span></div>}
+    </section>
+  </div>;
+}
+
 const defaultSettings: StoreSettings = {
   shopName: "SABA READYMADE", ownerName: "Mr. MD Jawed Equbal", phone: DEFAULT_PHONE, whatsapp: DEFAULT_WHATSAPP,
   address: DEFAULT_ADDRESS, description: "Everyday fashion for the whole family.",
@@ -226,6 +331,7 @@ export function AdminApp() {
     "/admin/products": ["Your products", "All your styles, prices and stock — right where you need them."],
     "/admin/categories": ["Your categories", "Give every collection its own little corner of the shop."],
     "/admin/orders": ["Customer orders", "Take good care of every order and everyone who made it."],
+    "/admin/access": ["Admin access", "Invite trusted people without opening admin registration to the public."],
     "/admin/settings": ["Store & homepage", "Keep your shop details, announcements and first impression feeling like you."]
   }[routeLocation.pathname] ?? ["Store studio", "Everything you need to take care of your shop."]), [routeLocation.pathname]);
   function verify() {
@@ -238,6 +344,9 @@ export function AdminApp() {
     setEmail("");
     navigate("/admin");
   }
+  if (routeLocation.pathname === "/admin/signup") {
+    return <AdminSignup onCreated={(createdEmail) => { setEmail(createdEmail); navigate("/admin"); }} />;
+  }
   if (checking) return <div className="admin-checking"><span /> Opening your studio...</div>;
   if (!email) return <AdminLogin onLogin={verify} />;
   const [title, subtitle] = page;
@@ -246,5 +355,6 @@ export function AdminApp() {
     routeLocation.pathname === "/admin/products" ? <ProductsManager categories={[]} /> :
       routeLocation.pathname === "/admin/categories" ? <CategoriesManager /> :
         routeLocation.pathname === "/admin/orders" ? <OrdersManager /> :
+          routeLocation.pathname === "/admin/access" ? <AdminAccessManager /> :
           routeLocation.pathname === "/admin/settings" ? <SettingsManager /> : <Dashboard onOrders={() => navigate("/admin/orders")} />}</AdminShell>;
 }

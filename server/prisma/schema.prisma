@@ -12,6 +12,21 @@ model Admin {
   email        String   @unique
   passwordHash String
   createdAt    DateTime @default(now())
+  invites      AdminInvite[]
+}
+
+model AdminInvite {
+  id          String   @id @default(cuid())
+  email       String
+  tokenHash   String   @unique
+  createdById String
+  createdBy   Admin    @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([email])
+  @@index([expiresAt, usedAt])
 }
 
 model Category {

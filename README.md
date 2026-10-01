@@ -67,6 +67,8 @@ To deliberately reset an existing admin password, first set the new `ADMIN_PASSW
 
 The protected admin studio includes sales and order summaries, product search/category/stock filters, price and inventory editing, multi-image URL fields, storefront visibility controls, category management, homepage settings, and order status updates. Orders can be tracked through Pending, Confirmed, Processing, Shipped, Out for Delivery, Delivered, or Cancelled. Cancelling an order requires confirmation and restores its reserved stock.
 
+Admin registration is invite-only. A signed-in admin can open **Admin access** in the studio to create a one-time invitation for an email address. Share the displayed private link directly with that person; it expires after 24 hours. The invitee creates a password of at least 12 characters and is signed in automatically. Public sign-up without a valid invitation is not allowed.
+
 ## Publish on Render
 
 ### Free hosting with Render and Neon
@@ -97,7 +99,7 @@ The starter template is `server/.env.example`.
 
 ## Database and sample catalog
 
-The first migration creates the relational tables for administrators, categories, products, orders, order items, and store settings. The seed script can be safely run again: it adds or updates the starter categories and inserts missing sample products without resetting products already edited in the admin panel. The expanded catalog includes men's, boys' and girls' ready-made styles; gender and garment subcategory are searchable product tags, so the existing catalog, search, and filter system handles them without a separate product model.
+The migrations create the relational tables for administrators, admin invitations, categories, products, orders, order items, and store settings. The seed script can be safely run again: it adds or updates the starter categories and inserts missing sample products without resetting products already edited in the admin panel. The expanded catalog includes men's, boys' and girls' ready-made styles; gender and garment subcategory are searchable product tags, so the existing catalog, search, and filter system handles them without a separate product model.
 
 To regenerate Prisma Client after changing the schema:
 

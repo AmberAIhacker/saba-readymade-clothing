@@ -541,6 +541,24 @@ img { display: block; max-width: 100%; }
 .admin-login-card input { height: 40px; }
 .admin-login-card > .admin-primary-button { width: 100%; margin-top: 8px; justify-content: space-between; }
 .admin-login-card > small { display: block; margin-top: 15px; color: #9ba29c; font-size: 8px; text-align: center; }
+.admin-invite-signup-link { display: block; margin-top: 15px; color: #58735d; font-size: 9px; text-align: center; }
+.admin-loading { display: flex; align-items: center; gap: 8px; margin: 20px 0; color: #778078; font-size: 10px; }
+.admin-loading span { width: 13px; height: 13px; border: 2px solid #dce5dc; border-top-color: #58735d; border-radius: 50%; animation: spin .8s linear infinite; }
+.admin-access-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(280px, .85fr); gap: 14px; align-items: start; }
+.admin-invite-panel, .admin-invites-panel { padding: 19px; }
+.admin-invite-panel > p { margin: 12px 0 18px; color: #8a938c; font-size: 9px; line-height: 1.7; }
+.admin-invite-panel form { display: flex; align-items: end; gap: 10px; }
+.admin-invite-panel form label, .admin-invite-result label { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 6px; color: #66716a; font-size: 9px; font-weight: 600; }
+.admin-invite-panel input { width: 100%; height: 36px; min-width: 0; border: 1px solid #e5e8e8; border-radius: 3px; padding: 0 10px; background: #fff; color: #344137; font-size: 10px; }
+.admin-invite-panel form .admin-primary-button { min-height: 36px; flex: 0 0 auto; }
+.admin-invite-result { display: flex; align-items: end; gap: 9px; margin: 15px 15px 0; padding: 12px; background: #f4f6f1; }
+.admin-invite-result .admin-secondary-button { min-height: 36px; flex: 0 0 auto; }
+.admin-invite-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 58px; border-top: 1px solid #eff0f1; }
+.admin-invite-row > div { min-width: 0; }
+.admin-invite-row strong, .admin-invite-row span { display: block; overflow-wrap: anywhere; }
+.admin-invite-row strong { color: #3a4650; font-size: 9px; }
+.admin-invite-row span { margin-top: 4px; color: #9ba1a5; font-size: 8px; }
+.admin-empty { min-height: 95px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #939b94; font-size: 9px; }
 .admin-login-footer { position: absolute; bottom: 22px; color: #929a91; font-size: 8px; letter-spacing: .17em; }
 .admin-overlay { display: none; }
 
@@ -603,7 +621,7 @@ img { display: block; max-width: 100%; }
   .admin-topbar { justify-content: flex-start; gap: 12px; padding-inline: 19px; }
   .admin-topbar-right { margin-left: auto; }
   .admin-dashboard-grid { grid-template-columns: 1.25fr .9fr; }
-  .admin-category-layout, .admin-settings-layout { grid-template-columns: 1fr; }
+  .admin-category-layout, .admin-settings-layout, .admin-access-layout { grid-template-columns: 1fr; }
 }
 @media (max-width: 600px) {
   .announcement-bar { height: 29px; justify-content: center; padding-inline: 10px; font-size: 8px; }
@@ -630,6 +648,10 @@ img { display: block; max-width: 100%; }
   .header-actions.is-open .admin-login-link { margin: 12px 0 0 15px; }
   .header-actions.is-open { top: 66px; }
   .page-container { width: calc(100% - 32px); }
+  .admin-login-screen { padding: 70px 17px 55px; }
+  .admin-back-link { top: 22px; left: 17px; }
+  .admin-login-card { padding: 27px 23px; }
+  .admin-invite-panel form, .admin-invite-result { align-items: stretch; flex-direction: column; }
   .hero-banner { min-height: 560px; display: flex; flex-direction: column; }
   .hero-copy { padding: 37px 23px 24px; }
   .hero-copy h1 { margin: 14px 0 9px; font-size: clamp(41px, 12vw, 57px); }

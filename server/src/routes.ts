@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { createHash, randomInt } from "node:crypto";
+import { createHash, randomBytes, randomInt } from "node:crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { z } from "zod";
@@ -8,6 +8,23 @@ import { asyncRoute, HttpError, requireAdmin } from "./middleware.js";
 import { ORDER_STATUSES, publicProduct, slugify } from "./lib.js";
 
 export const api = Router();
+const adminInviteExpiryMs = 24 * 60 * 60 * 1000;
+
+function createAdminSession(res: import("express").Response, admin: { id: string; email: string }) {
+  const secret = process.env.JWT_SECRET;
+  if (!secret || secret.length < 32) throw new HttpError(500, "Admin authentication is not configured securely.");
+  const token = jwt.sign({ sub: admin.id }, secret, { expiresIn: "8h" });
+  res.cookie("saba_admin", token, {
+    httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production",
+    maxAge: 8 * 60 * 60 * 1000, path: "/"
+  });
+}
+
+function adminIdFromRequest(req: import("express").Request) {
+  const payload = jwt.verify(req.cookies.saba_admin, process.env.JWT_SECRET!) as jwt.JwtPayload;
+  if (typeof payload.sub !== "string") throw new HttpError(401, "Your admin session is invalid. Please sign in again.");
+  return payload.sub;
+}
 
 const productFields = z.object({
   name: z.string().trim().min(2).max(120),
@@ -181,6 +198,44 @@ api.post("/orders/track", asyncRoute(async (req, res) => {
   res.json(order);
 }));
 
+api.get("/admin/invites/validate/:token", asyncRoute(async (req, res) => {
+  const token = z.string().regex(/^[A-Za-z0-9_-]{40,60}$/).parse(req.params.token);
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  const invite = await db.adminInvite.findFirst({
+    where: { tokenHash, usedAt: null, expiresAt: { gt: new Date() } },
+    select: { email: true, expiresAt: true }
+  });
+  if (!invite) throw new HttpError(404, "This admin invitation is invalid, expired, or already used.");
+  if (await db.admin.findUnique({ where: { email: invite.email }, select: { id: true } })) {
+    throw new HttpError(409, "An admin account already exists for this email.");
+  }
+  res.json(invite);
+}));
+
+api.post("/admin/signup", asyncRoute(async (req, res) => {
+  const { token, password } = z.object({
+    token: z.string().regex(/^[A-Za-z0-9_-]{40,60}$/),
+    password: z.string().min(12).max(200)
+  }).parse(req.body);
+  const tokenHash = createHash("sha256").update(token).digest("hex");
+  const invite = await db.adminInvite.findFirst({
+    where: { tokenHash, usedAt: null, expiresAt: { gt: new Date() } },
+    select: { id: true, email: true }
+  });
+  if (!invite) throw new HttpError(404, "This admin invitation is invalid, expired, or already used.");
+  const passwordHash = await bcrypt.hash(password, 12);
+  const admin = await db.$transaction(async (tx) => {
+    const claimed = await tx.adminInvite.updateMany({
+      where: { id: invite.id, usedAt: null, expiresAt: { gt: new Date() } },
+      data: { usedAt: new Date() }
+    });
+    if (claimed.count !== 1) throw new HttpError(409, "This admin invitation has already been used.");
+    return tx.admin.create({ data: { email: invite.email, passwordHash }, select: { id: true, email: true } });
+  });
+  createAdminSession(res, admin);
+  res.status(201).json({ email: admin.email });
+}));
+
 api.post("/admin/login", asyncRoute(async (req, res) => {
   const { email, password } = z.object({
     email: z.string().email().max(254),
@@ -190,13 +245,7 @@ api.post("/admin/login", asyncRoute(async (req, res) => {
   if (!admin || !(await bcrypt.compare(password, admin.passwordHash))) {
     throw new HttpError(401, "Email or password is incorrect.");
   }
-  const secret = process.env.JWT_SECRET;
-  if (!secret || secret.length < 32) throw new HttpError(500, "Admin authentication is not configured securely.");
-  const token = jwt.sign({ sub: admin.id }, secret, { expiresIn: "8h" });
-  res.cookie("saba_admin", token, {
-    httpOnly: true, sameSite: "strict", secure: process.env.NODE_ENV === "production",
-    maxAge: 8 * 60 * 60 * 1000, path: "/"
-  });
+  createAdminSession(res, admin);
   res.json({ email: admin.email });
 }));
 
@@ -213,6 +262,47 @@ api.get("/admin/me", requireAdmin, asyncRoute(async (req, res) => {
 }));
 
 api.use("/admin", requireAdmin);
+
+api.get("/admin/invites", asyncRoute(async (_req, res) => {
+  const invites = await db.adminInvite.findMany({
+    where: { usedAt: null, expiresAt: { gt: new Date() } },
+    select: { id: true, email: true, expiresAt: true, createdAt: true },
+    orderBy: { createdAt: "desc" }
+  });
+  res.json(invites);
+}));
+
+api.post("/admin/invites", asyncRoute(async (req, res) => {
+  const { email: rawEmail } = z.object({ email: z.string().trim().email().max(254) }).parse(req.body);
+  const email = rawEmail.toLowerCase();
+  if (await db.admin.findUnique({ where: { email }, select: { id: true } })) {
+    throw new HttpError(409, "An admin account already exists for this email.");
+  }
+  if (await db.adminInvite.findFirst({
+    where: { email, usedAt: null, expiresAt: { gt: new Date() } },
+    select: { id: true }
+  })) {
+    throw new HttpError(409, "There is already an active invitation for this email.");
+  }
+  const token = randomBytes(32).toString("base64url");
+  const invite = await db.adminInvite.create({
+    data: {
+      email,
+      tokenHash: createHash("sha256").update(token).digest("hex"),
+      createdById: adminIdFromRequest(req),
+      expiresAt: new Date(Date.now() + adminInviteExpiryMs)
+    },
+    select: { id: true, email: true, expiresAt: true, createdAt: true }
+  });
+  res.status(201).json({ ...invite, token });
+}));
+
+api.delete("/admin/invites/:id", asyncRoute(async (req, res) => {
+  const id = String(req.params.id);
+  const removed = await db.adminInvite.deleteMany({ where: { id, usedAt: null } });
+  if (removed.count !== 1) throw new HttpError(404, "Active invitation not found.");
+  res.status(204).end();
+}));
 
 api.get("/admin/dashboard", asyncRoute(async (_req, res) => {
   const [totalProducts, totalOrders, pendingOrders, confirmedOrders, deliveredOrders, cancelledOrders, lowStock, outOfStock, revenue, recentOrders] = await Promise.all([
