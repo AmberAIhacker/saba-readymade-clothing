@@ -1,0 +1,101 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+}
+
+model Category {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  slug      String    @unique
+  imageUrl  String?
+  enabled   Boolean   @default(true)
+  products  Product[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Product {
+  id               String      @id @default(cuid())
+  name             String
+  slug             String      @unique
+  categoryId       String
+  category         Category    @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  brand            String      @default("SABA READYMADE")
+  description      String
+  imageUrl         String
+  images           String      @default("[]")
+  originalPrice    Int
+  sellingPrice     Int
+  discountPercent  Int         @default(0)
+  sizes            String      @default("[]")
+  colors           String      @default("[]")
+  keywords         String      @default("[]")
+  stock             Int         @default(0)
+  rating           Float       @default(4.5)
+  reviewCount      Int         @default(0)
+  featured         Boolean     @default(false)
+  newArrival       Boolean     @default(false)
+  offer            Boolean     @default(false)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  orderItems       OrderItem[]
+}
+
+model Order {
+  id             String      @id @default(cuid())
+  orderNumber    String      @unique
+  customerName   String
+  mobile         String
+  address        String
+  city           String
+  state          String
+  pinCode        String
+  totalAmount    Int
+  deliveryFee    Int         @default(0)
+  status         String      @default("Pending")
+  paymentMethod  String      @default("Cash on Delivery")
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  items          OrderItem[]
+}
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  orderId      String
+  order        Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId    String
+  product      Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  productName  String
+  imageUrl     String
+  unitPrice    Int
+  quantity     Int
+  size         String
+  color        String
+}
+
+model StoreSettings {
+  id               String   @id @default("store")
+  shopName         String   @default("SABA READYMADE")
+  ownerName        String   @default("Mr. MD Jawed Equbal")
+  phone            String   @default("918210869821")
+  whatsapp         String   @default("918210869821")
+  address          String   @default("Gudri Bazar, Laheriyasarai, Darbhanga, Bihar")
+  description      String   @default("Everyday fashion for the whole family. Thoughtful styles and friendly prices.")
+  websiteCredit    String   @default("Mr. Amber Rehan")
+  announcement     String   @default("Fresh styles. Lovely prices. Made for you.")
+  heroTitle        String   @default("Find your everyday\nfavorite.")
+  heroSubtitle     String   @default("Thoughtful styles for every version of you.")
+  heroImageUrl     String   @default("")
+  updatedAt        DateTime @updatedAt
+}

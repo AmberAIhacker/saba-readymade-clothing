@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 720" fill="none">
+  <rect width="600" height="720" fill="#eeece4"/>
+  <circle cx="300" cy="280" r="126" fill="#e4e4d9"/>
+  <path d="M300 191c-23 0-41 18-41 41v16h82v-16c0-23-18-41-41-41Z" stroke="#829082" stroke-width="8"/>
+  <path d="M259 248c-26 19-45 30-73 39v189h228V287c-28-9-47-20-73-39l-41 35-41-35Z" fill="#d3d8cd" stroke="#718273" stroke-width="8" stroke-linejoin="round"/>
+  <path d="m300 283 25 57h-50l25-57Z" fill="#f7f5ee"/>
+  <path d="M211 392h178M229 431h142" stroke="#aab2a5" stroke-width="7" stroke-linecap="round"/>
+  <text x="300" y="565" text-anchor="middle" fill="#5d6d60" font-family="Arial,sans-serif" font-size="18" letter-spacing="5">SABA READYMADE</text>
+  <text x="300" y="594" text-anchor="middle" fill="#989b8e" font-family="Arial,sans-serif" font-size="12" letter-spacing="3">A LITTLE SOMETHING TO WEAR</text>
+</svg>
