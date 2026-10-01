@@ -65,9 +65,16 @@ Open <http://localhost:5173/admin> to sign in to the separate store studio.
 
 ## Publish on Render
 
-This repository includes a Render Blueprint in `render.yaml`. Push the project to a GitHub repository, then in Render choose **New → Blueprint**, connect that repository, and apply the `saba-readymade` service. Enter the admin email and a unique password of at least 12 characters when prompted; Render generates the JWT secret. The Blueprint builds the React storefront, serves it and the API from one service, runs database migrations, and stores SQLite data on a persistent disk. The paid Starter plan is required because Render's free web services do not support persistent disks.
+### Free hosting with Render and Neon
 
-After the first deploy succeeds, open the service's Shell and run `npm run db:seed -w server` and then `npm run admin:create -w server` once to load the sample catalog and create the protected admin account. Then open `https://<your-service>.onrender.com` for the shop or `/admin` for the store studio. Keep `ADMIN_PASSWORD` private and do not commit it. Do not remove the persistent disk: it contains customer orders, admin accounts, and store data.
+The Render Blueprint deploys a free web service and uses a separate PostgreSQL database so orders and store data do not disappear when the free web service sleeps or redeploys. The production PostgreSQL schema and migrations are in `server/prisma-postgres/`; local development continues to use SQLite.
+
+1. Create a free Neon project at <https://neon.tech> and copy its **pooled** PostgreSQL connection string.
+2. In Render choose **New → Blueprint**, connect this GitHub repository, and apply `render.yaml`. Choose the **Free** service plan. When asked for environment values, paste the Neon connection string into `DATABASE_URL`, and enter the admin email and a unique password of at least 12 characters. Render generates `JWT_SECRET`.
+3. Wait for the first deploy to finish. The service runs PostgreSQL migrations, seeds the 80-product catalog, and creates the initial protected admin automatically.
+4. Open `https://<your-service>.onrender.com` for the shop and `/admin` for the store studio. Keep the Neon connection string and admin password private.
+
+Free hosting has trade-offs: the Render website sleeps after 15 minutes without traffic and may take about a minute to wake up. Render's free service can restart and has usage limits; Neon Free is permanent under its current plan but also has storage and compute quotas. This is a free hobby deployment, not a production uptime guarantee. Watch both providers' current quotas and back up the Neon database.
 
 ## Environment variables
 
@@ -75,7 +82,7 @@ The starter template is `server/.env.example`.
 
 | Variable | Purpose |
 | --- | --- |
-| `DATABASE_URL` | Prisma database URL; defaults to `file:./dev.db` |
+| `DATABASE_URL` | Prisma database URL; local default is `file:./dev.db`; hosted service uses the Neon PostgreSQL connection string |
 | `JWT_SECRET` | Secret used to sign the expiring admin session cookie |
 | `ADMIN_EMAIL` | Email for `npm run admin:create` |
 | `ADMIN_PASSWORD` | Initial admin password; never add this to the client |

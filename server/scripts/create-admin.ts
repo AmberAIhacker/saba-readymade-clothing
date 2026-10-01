@@ -19,7 +19,8 @@ async function main() {
   }
   const existing = await db.admin.findUnique({ where: { email } });
   if (existing) {
-    throw new Error(`An admin already exists for ${email}. Use a password reset procedure rather than replacing credentials here.`);
+    console.log(`Admin account already exists for ${email}; existing credentials were not changed.`);
+    return;
   }
   const passwordHash = await bcrypt.hash(password, 12);
   await db.admin.create({ data: { email, passwordHash } });
