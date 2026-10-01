@@ -63,6 +63,8 @@ No admin account or shared password is shipped in the seed data. Before creating
 
 Open <http://localhost:5173/admin> to sign in to the separate store studio.
 
+To deliberately reset an existing admin password, first set the new `ADMIN_PASSWORD` in the private service environment, then run `npm run admin:reset -w server` once against that service. This explicit maintenance command updates only the matching `ADMIN_EMAIL`; normal deploy startup never changes an existing password.
+
 The protected admin studio includes sales and order summaries, product search/category/stock filters, price and inventory editing, multi-image URL fields, storefront visibility controls, category management, homepage settings, and order status updates. Orders can be tracked through Pending, Confirmed, Processing, Shipped, Out for Delivery, Delivered, or Cancelled. Cancelling an order requires confirmation and restores its reserved stock.
 
 ## Publish on Render
@@ -75,6 +77,7 @@ The Render Blueprint deploys a free web service and uses a separate PostgreSQL d
 2. In Render choose **New → Blueprint**, connect this GitHub repository, and apply `render.yaml`. Choose the **Free** service plan. When asked for environment values, paste the pooled URL into `DATABASE_URL`, the direct URL into `DATABASE_URL_UNPOOLED`, and enter the admin email and a unique password of at least 12 characters. Render generates `JWT_SECRET`.
 3. Wait for the first deploy to finish. The service runs PostgreSQL migrations, seeds the 80-product catalog, and creates the initial protected admin automatically.
 4. Open `https://<your-service>.onrender.com` for the shop and `/admin` for the store studio. Keep the Neon connection string and admin password private.
+5. If the admin password is forgotten later, update `ADMIN_PASSWORD` under the Render service's **Environment** settings, deploy the change, then use the service **Shell** to run `npm run admin:reset -w server` once. The command hashes the new password and updates the existing admin account.
 
 Free hosting has trade-offs: the Render website sleeps after 15 minutes without traffic and may take about a minute to wake up. Render's free service can restart and has usage limits; Neon Free is permanent under its current plan but also has storage and compute quotas. This is a free hobby deployment, not a production uptime guarantee. Watch both providers' current quotas and back up the Neon database.
 
