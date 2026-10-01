@@ -69,8 +69,8 @@ Open <http://localhost:5173/admin> to sign in to the separate store studio.
 
 The Render Blueprint deploys a free web service and uses a separate PostgreSQL database so orders and store data do not disappear when the free web service sleeps or redeploys. The production PostgreSQL schema and migrations are in `server/prisma-postgres/`; local development continues to use SQLite.
 
-1. Create a free Neon project at <https://neon.tech> and copy its **pooled** PostgreSQL connection string.
-2. In Render choose **New → Blueprint**, connect this GitHub repository, and apply `render.yaml`. Choose the **Free** service plan. When asked for environment values, paste the Neon connection string into `DATABASE_URL`, and enter the admin email and a unique password of at least 12 characters. Render generates `JWT_SECRET`.
+1. Create a free Neon project at <https://neon.tech>. Copy both PostgreSQL connection strings from its **Connect** dialog: the **pooled** URL (hostname contains `-pooler`) and the **direct** URL (no `-pooler`).
+2. In Render choose **New → Blueprint**, connect this GitHub repository, and apply `render.yaml`. Choose the **Free** service plan. When asked for environment values, paste the pooled URL into `DATABASE_URL`, the direct URL into `DATABASE_URL_UNPOOLED`, and enter the admin email and a unique password of at least 12 characters. Render generates `JWT_SECRET`.
 3. Wait for the first deploy to finish. The service runs PostgreSQL migrations, seeds the 80-product catalog, and creates the initial protected admin automatically.
 4. Open `https://<your-service>.onrender.com` for the shop and `/admin` for the store studio. Keep the Neon connection string and admin password private.
 
