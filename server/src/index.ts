@@ -17,7 +17,7 @@ app.disable("x-powered-by");
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
-      "img-src": ["'self'", "data:", "https://images.unsplash.com"]
+      "img-src": ["'self'", "data:", "https:"]
     }
   }
 }));
