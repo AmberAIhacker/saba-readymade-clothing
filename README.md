@@ -156,7 +156,7 @@ npm run build
 
 The built customer application is written to `client/dist`; the compiled API is written to `server/dist`. For a production deployment, configure a persistent database location (or migrate the Prisma provider to PostgreSQL), set production-only secrets and `NODE_ENV=production`, set `CLIENT_ORIGIN` to the actual HTTPS storefront origin, run migrations, and serve the static client from a web server/CDN with `/api` routed to the Express service. Back up the SQLite database if you keep SQLite. Set up HTTPS before using the secure production admin cookie.
 
-Image hosting and Google Maps API services are not configured. Products accept HTTPS image URLs from external hosts; use a direct image link that is publicly accessible. The contact page links to Google Maps search without claiming a Maps integration. Online payment must be connected to a real provider before it is offered.
+Image hosting and Google Maps API services are not configured. Products accept HTTPS image URLs from external hosts; use a direct, publicly accessible image link. Public Google Drive sharing links are also supported and converted to Drive's image endpoint for display; set the file's General access to "Anyone with the link". The contact page links to Google Maps search without claiming a Maps integration. Online payment must be connected to a real provider before it is offered.
 
 ## Checks
 
