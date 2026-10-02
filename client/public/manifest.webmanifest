@@ -1,0 +1,21 @@
+{
+  "id": "/",
+  "name": "SABA READYMADE",
+  "short_name": "SABA",
+  "description": "Shop thoughtful everyday fashion for men, women and kids.",
+  "lang": "en-IN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8f7f3",
+  "theme_color": "#f8f7f3",
+  "icons": [
+    {
+      "src": "/app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

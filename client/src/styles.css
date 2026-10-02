@@ -45,6 +45,13 @@ img { display: block; max-width: 100%; }
 .cart-link { display: inline-flex; align-items: center; gap: 7px; position: relative; }
 .admin-login-link { display: inline-flex; align-items: center; justify-content: center; gap: 6px; color: #68766b; font-size: 10px; white-space: nowrap; }
 .admin-login-link:hover { color: #b86549; }
+.install-app-button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 8px 10px; border: 1px solid #d8d5ca; border-radius: 3px; background: transparent; color: #536456; font: inherit; font-size: 10px; white-space: nowrap; cursor: pointer; }
+.install-app-button:hover { border-color: #536456; color: #344a3e; }
+.install-help-backdrop { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; padding: 20px; background: #18221dcc; }
+.install-help-dialog { position: relative; width: min(100%, 390px); padding: 34px; border-radius: 6px; background: var(--paper); box-shadow: 0 20px 70px #0003; }
+.install-help-dialog h2 { margin: 12px 0; font-family: var(--serif); font-size: 30px; font-weight: 500; }
+.install-help-dialog p { margin: 0 0 22px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+.install-help-close { position: absolute; top: 12px; right: 12px; }
 .cart-count { min-width: 17px; height: 17px; display: grid; place-items: center; padding: 0 4px; position: absolute; top: -10px; right: -11px; border-radius: 50%; background: var(--clay); color: white; font-size: 9px; }
 .mobile-menu-button { display: none !important; }
 .icon-button { border: 0; background: transparent; padding: 7px; }
@@ -645,7 +652,10 @@ img { display: block; max-width: 100%; }
   .header-actions:not(.is-open) .cart-link > span:not(.cart-count) { display: none; }
   .header-actions:not(.is-open) .admin-login-link { width: 32px; height: 34px; }
   .header-actions:not(.is-open) .admin-login-link > span { display: none; }
+  .header-actions:not(.is-open) .install-app-button { width: 32px; height: 34px; padding: 0; border: 0; }
+  .header-actions:not(.is-open) .install-app-button > span { display: none; }
   .header-actions.is-open .admin-login-link { margin: 12px 0 0 15px; }
+  .header-actions.is-open .install-app-button { margin: 12px 0 0 15px; }
   .header-actions.is-open { top: 66px; }
   .page-container { width: calc(100% - 32px); }
   .admin-login-screen { padding: 70px 17px 55px; }
@@ -828,4 +838,5 @@ img { display: block; max-width: 100%; }
   .admin-checkboxes label { font-size: 8px; }
   .admin-modal-actions { flex-wrap: wrap; }
   .admin-modal-actions button { flex: 1; }
+  .install-help-dialog { padding: 29px 23px; }
 }

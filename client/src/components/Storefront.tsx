@@ -1,21 +1,67 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { ArrowRight, Check, Heart, Menu, Search, ShoppingBag, Shirt, ShieldCheck, X, Star } from "lucide-react";
+import { ArrowRight, Check, Download, Heart, Menu, Search, ShoppingBag, Shirt, ShieldCheck, X, Star } from "lucide-react";
 import { money } from "../api";
 import { useCart } from "../cart";
 import type { Product, StoreSettings } from "../types";
 import { DEFAULT_ADDRESS, DEFAULT_PHONE, DEFAULT_WHATSAPP, mapsLink, phoneLink, whatsappLink } from "../storeDetails";
 import { StoreImage } from "./StoreImage";
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
+}
+
+function isStandaloneApp() {
+  const nav = navigator as Navigator & { standalone?: boolean };
+  return window.matchMedia("(display-mode: standalone)").matches || nav.standalone === true;
+}
+
 export function Header({ shopName = "SABA READYMADE", ownerName = "Mr. MD Jawed Equbal", announcement = "Fresh styles. Lovely prices. Made for you." }: { shopName?: string; ownerName?: string; announcement?: string }) {
   const [search, setSearch] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [installHelpOpen, setInstallHelpOpen] = useState(false);
+  const [appInstalled, setAppInstalled] = useState(isStandaloneApp);
+  const [isIos, setIsIos] = useState(false);
   const { count } = useCart();
   const navigate = useNavigate();
+  useEffect(() => {
+    setIsIos(/iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+    const onBeforeInstall = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as BeforeInstallPromptEvent);
+    };
+    const onInstalled = () => {
+      setAppInstalled(true);
+      setInstallPrompt(null);
+    };
+    window.addEventListener("beforeinstallprompt", onBeforeInstall);
+    window.addEventListener("appinstalled", onInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+      window.removeEventListener("appinstalled", onInstalled);
+    };
+  }, []);
   function submit(event: React.FormEvent) {
     event.preventDefault();
     navigate(`/shop${search.trim() ? `?search=${encodeURIComponent(search.trim())}` : ""}`);
     setMenuOpen(false);
+  }
+  async function installApp() {
+    if (!installPrompt) {
+      setInstallHelpOpen(true);
+      return;
+    }
+    try {
+      await installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      if (choice.outcome === "accepted") setAppInstalled(true);
+      setInstallPrompt(null);
+    } catch (error) {
+      console.error("The SABA READYMADE app installation prompt failed:", error);
+      setInstallHelpOpen(true);
+    }
   }
   return <>
     <div className="announcement-bar"><span>{announcement}</span><span>Free delivery on orders over ₹1,999</span></div>
@@ -36,8 +82,10 @@ export function Header({ shopName = "SABA READYMADE", ownerName = "Mr. MD Jawed 
         </nav>
         <Link to="/cart" className="cart-link"><ShoppingBag size={19} /><span>Bag</span>{count > 0 && <span className="cart-count">{count}</span>}</Link>
         <Link to="/admin" className="admin-login-link" aria-label="Admin login" title="Admin login"><ShieldCheck size={18} /><span>Admin</span></Link>
+        {!appInstalled && <button type="button" className="install-app-button" onClick={installApp}><Download size={17} /><span>Install App</span></button>}
       </div>
     </header>
+    {installHelpOpen && <div className="install-help-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setInstallHelpOpen(false); }}><section className="install-help-dialog" role="dialog" aria-modal="true" aria-labelledby="install-help-title"><button type="button" className="admin-icon-button install-help-close" onClick={() => setInstallHelpOpen(false)} aria-label="Close"><X size={19} /></button><span className="section-eyebrow">YOUR SHOP, ONE TAP AWAY</span><h2 id="install-help-title">Install SABA READYMADE</h2>{isIos ? <p>Tap the Share button in Safari, then choose <strong>Add to Home Screen</strong> and tap Add.</p> : <p>Open your browser menu and choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</p>}<button type="button" className="button button-dark" onClick={() => setInstallHelpOpen(false)}>Got it</button></section></div>}
   </>;
 }
 

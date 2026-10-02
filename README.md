@@ -115,6 +115,8 @@ The default store contact details are phone `918210869821`, WhatsApp `9182108698
 ## Shopping and order behavior
 
 - Customer routes are public; no customer login, signup, registration, or account is provided.
+- The customer storefront is an installable PWA. On Android, use the in-app Install App button or your browser's Install app/Add to Home screen option; on iPhone/iPad, open the site in Safari and use Share → Add to Home Screen.
+- The app shell and static files are cached for launch fallback, but product, order and admin API requests still require an internet connection.
 - Cart items are saved in the browser's `localStorage`, grouped by product, size, and color.
 - Checkout accepts guest delivery details and Cash on Delivery. The API reads current catalog prices, validates variants and stock, creates an order, and deducts inventory in a database transaction.
 - Delivery is ₹99 for orders below ₹1,999 and free from ₹1,999. The server calculates the fee; the browser's displayed total is not trusted.
